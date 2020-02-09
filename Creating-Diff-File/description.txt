@@ -1,0 +1,1 @@
+The course project was to write a program to create the most efficient diff file from a given original and modified file. The project included writing code to apply the diff file to the original file and consequently create the modified file too.
