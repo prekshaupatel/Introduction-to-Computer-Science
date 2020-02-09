@@ -361,7 +361,11 @@ bool runtest(string oldName, string newName, string diffName, string newName2)
         cerr << "Cannot open " << newName2 << endl;
         return false;
     }
-    if ( ! equal(istreambuf_iterator<char>(newFile), istreambuf_iterator<char>(),istreambuf_iterator<char>(newFile3), istreambuf_iterator<char>()))
+    istreambuf_iterator<char>begin1(newFile);
+    istreambuf_iterator<char>end1;
+    istreambuf_iterator<char>end2;
+    istreambuf_iterator<char>begin2(newFile3);
+    if (!(equal(begin1,end1,begin2)))
     {
         
         cerr << newName2 << " is not identical to " << newName
@@ -371,19 +375,115 @@ bool runtest(string oldName, string newName, string diffName, string newName2)
     return true;
 }
 
+bool apply_diff(string oldName, string diffName, string newName2)
+{
+    if (diffName == oldName  || newName2 == oldName  ||  newName2 == diffName)
+    {
+        cerr << "Files used for output must have names distinct from other files" << endl;
+        return false;
+    }
+    ifstream oldFile(oldName, ios::binary);
+    if (!oldFile)
+    {
+        cerr << "Cannot open " << oldName << endl;
+        return false;
+    }
+
+    ifstream diffFile2(diffName, ios::binary);
+    if (!diffFile2)
+    {
+        cerr << "Cannot read the " << diffName << " that was just created!" << endl;
+        return false;
+    }
+    ofstream newFile2(newName2, ios::binary);
+    if (!newFile2)
+    {
+        cerr << "Cannot create " << newName2 << endl;
+        return false;
+    }
+    assert(applyDiff(oldFile, diffFile2, newFile2));
+    newFile2.close();
+    return true;
+}
+
+
+
+
+bool create_diff(string oldName, string newName, string diffName)
+{
+    if (diffName == oldName  ||  diffName == newName )
+    {
+        cerr << "Diff file must have a distinct name" << endl;
+        return false;
+    }
+    ifstream oldFile(oldName, ios::binary);
+    if (!oldFile)
+    {
+        cerr << "Cannot open " << oldName << endl;
+        return false;
+    }
+    ifstream newFile(newName, ios::binary);
+    if (!newFile)
+    {
+        cerr << "Cannot open " << newName << endl;
+        return false;
+    }
+    ofstream diffFile(diffName, ios::binary);
+    if (!diffFile)
+    {
+        cerr << "Cannot create " << diffName << endl;
+        return false;
+    }
+    createDiff(oldFile, newFile, diffFile);
+    diffFile.close();
+    return true;
+}
 
 
 int main()
 {
-    string orig, modified, diff, remade;
-    cout<<"Enter absolute path for original file\n";
-    getline(cin, orig);
-    cout<<"Enter absolute path for modified file\n";
-    getline(cin, modified);
-    cout<<"Enter absolute path for diff file\n";
-    getline(cin, diff);
-    cout<<"Enter absolute path for diff file\n";
-    getline(cin, remade);
-    assert(runtest(orig, modified, diff, remade));
-    
+  int opt;
+  cout<<"Please select one of the following options:\n1: Create a diff file\n2: Apply a diff file\n3: Check accuracy\n";
+  cin>>opt;
+  while(opt != 1 && opt != 2 && opt != 3)
+    {
+      cout<<"Please enter valid option (1/2/3)\n";
+      cin.ignore(1000, '\n');
+      cin>>opt;
+    }
+  cin.ignore(1000, '\n');
+  string orig, modified, diff, remade;
+  if (opt == 1)
+    {
+      cout<<"Enter absolute path for original file\n";
+      getline(cin, orig);
+      cout<<"Enter absolute path for modified file\n";
+      getline(cin, modified);
+      cout<<"Enter absolute path for diff file\n";
+      getline(cin, diff);
+      create_diff(orig, modified, diff);
+    }
+  else if (opt == 2)
+    {
+      cout<<"Enter absolute path for original file\n";
+      getline(cin, orig);
+      cout<<"Enter absolute path for diff file\n";
+      getline(cin, diff);
+      cout<<"Enter absolute path for new file\n";
+      getline(cin, remade);
+      apply_diff(orig, diff, remade);
+    }
+  else
+    {
+      cout<<"Enter absolute path for original file\n";
+      getline(cin, orig);
+      cout<<"Enter absolute path for modified file\n";
+      getline(cin, modified);
+      cout<<"Enter absolute path for diff file\n";
+      getline(cin, diff);
+      cout<<"Enter absolute path for new file\n";
+      getline(cin, remade);
+      assert(runtest(orig, modified, diff, remade));
+    }
+  return 0;
 }
