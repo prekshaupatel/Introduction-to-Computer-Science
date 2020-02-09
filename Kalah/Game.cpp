@@ -80,6 +80,7 @@ bool Game::move()
             //capture!!
             m_b.moveToPot(NORTH, endHole, z);
             m_b.moveToPot(SOUTH, endHole, z);
+	    display();
         }
     }
 
